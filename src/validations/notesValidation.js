@@ -8,7 +8,8 @@ export const getAllNotesSchema = {
     perPage: Joi.number().integer().min(5).max(20).default(10),
     tag: Joi.string()
       .valid(...TAGS)
-      .optional(),
+      .optional()
+      .insensitive(),
     search: Joi.string().trim().allow(''),
   }),
 };

@@ -2,19 +2,21 @@ import createHttpError from 'http-errors';
 import { Note } from '../models/note.js';
 
 export const getAllNotes = async (req, res) => {
-  const { page = 1, perPage = 10, tag, search } = req.query;
-
-  const skip = (page - 1) * perPage;
+  const page = Number(req.query.page) || 1;
+  const perPage = Number(req.query.perPage || req.query.limit) || 10;
+  const { tag, search } = req.query;
 
   const filter = {};
 
   if (tag) {
-    filter.tag = tag;
+    filter.tag = { $regex: `^${tag}$`, $options: 'i' };
   }
 
   if (search) {
-    filter['$text'] = { $search: search };
+    filter.$text = { $search: search };
   }
+
+  const skip = (page - 1) * perPage;
 
   const totalNotes = await Note.countDocuments(filter);
 
