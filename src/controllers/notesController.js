@@ -1,26 +1,28 @@
 import createHttpError from 'http-errors';
 import { Note } from '../models/note.js';
+import { Promise } from 'mongoose';
 
 export const getAllNotes = async (req, res) => {
   const page = Number(req.query.page) || 1;
   const perPage = Number(req.query.perPage || req.query.limit) || 10;
   const { tag, search } = req.query;
 
-  const filter = {};
+  const skip = (page - 1) * perPage;
+
+  const notesQuery = Note.find();
 
   if (tag) {
-    filter.tag = { $regex: `^${tag}$`, $options: 'i' };
+    notesQuery.where('tag').equals(tag);
   }
 
   if (search) {
-    filter.$text = { $search: search };
+    notesQuery.where({ $text: { $search: search } });
   }
 
-  const skip = (page - 1) * perPage;
-
-  const totalNotes = await Note.countDocuments(filter);
-
-  const notes = await Note.find(filter).skip(skip).limit(perPage);
+  const [totalNotes, notes] = await Promise.all([
+    notesQuery.clone().countDocuments(),
+    notesQuery.skip(skip).limit(perPage),
+  ]);
 
   const totalPages = Math.ceil(totalNotes / perPage);
 
