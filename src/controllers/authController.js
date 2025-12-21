@@ -113,7 +113,7 @@ export const requestResetEmail = async (req, res, next) => {
   const resetToken = jwt.sign(
     { sub: user._id, email },
     process.env.JWT_SECRET,
-    { expiresIn: '15 m' },
+    { expiresIn: '15m' },
   );
 
   const templatePath = path.resolve('src/templates/reset-password-email.html');
@@ -135,7 +135,9 @@ export const requestResetEmail = async (req, res, next) => {
       html,
     });
   } catch {
-    next(createHttpError(500, 'Password reset email sent successfully.'));
+    next(
+      createHttpError(500, 'Failed to send the email, please try again later.'),
+    );
     return;
   }
 
